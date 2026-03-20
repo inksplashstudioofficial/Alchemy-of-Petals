@@ -1,0 +1,8 @@
+
+{
+  "name": "Alchemy of Petals - Premium Flower Nursery",
+  "description": "An elegant online boutique for rare and beautiful flower plants, featuring an AI-powered Plant Doctor and personalized Matchmaker.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

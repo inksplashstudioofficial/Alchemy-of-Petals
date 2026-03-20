@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alchemy of Petals - Sign In</title>
+    <!-- Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .animate-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@19.0.0",
+        "react-dom": "https://esm.sh/react-dom@19.0.0",
+        "react-dom/client": "https://esm.sh/react-dom@19.0.0/client"
+      }
+    }
+    </script>
+</head>
+
+<body class="bg-slate-50 text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState } from 'react';
+        import { createRoot } from 'react-dom/client';
+
+        const AuthApp = () => {
+            const [isRegister, setIsRegister] = useState(false);
+            const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+            const [loading, setLoading] = useState(false);
+            const [step, setStep] = useState('form');
+            const [code, setCode] = useState('');
+            const [expectedCode, setExpectedCode] = useState('');
+
+            // To make this work securely, replace these with your actual EmailJS keys
+            const EMAILJS_PUBLIC_KEY = "WBOLOrlGCrr64knDW";
+            const EMAILJS_SERVICE_ID = "service_gglwmpj";
+            const EMAILJS_TEMPLATE_ID = "template_67ad5u6";
+
+            React.useEffect(() => {
+                emailjs.init(EMAILJS_PUBLIC_KEY);
+            }, []);
+
+            const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+            const finishAuth = () => {
+                const user = {
+                    name: isRegister ? formData.name : (formData.email.split('@')[0] || 'Guest'),
+                    email: formData.email
+                };
+                localStorage.setItem('garden_user', JSON.stringify(user));
+                window.location.href = 'index.html';
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+
+                if (isRegister) {
+                    const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+                    setExpectedCode(generatedOtp);
+
+                    try {
+                        // In reality, this will throw an error if the placeholders are not replaced
+                        if (EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY_HERE") {
+                            console.warn("EmailJS is running in mock mode. Fill in your keys!");
+                        } else {
+                            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                                to_name: formData.name,
+                                to_email: formData.email,
+                                message: generatedOtp,
+                                reply_to: "noreply@alchemyofpetals.com"
+                            });
+                        }
+                        setStep('verify');
+                    } catch (error) {
+                        console.error('Failed to send OTP:', error);
+                        alert("There was an issue sending the verification email. Ensure your EmailJS keys are correct!");
+                    } finally {
+                        setLoading(false);
+                    }
+                } else {
+                    setTimeout(() => {
+                        setLoading(false);
+                        finishAuth();
+                    }, 800);
+                }
+            };
+
+            const handleVerify = (e) => {
+                e.preventDefault();
+                if (code.length < 4) return;
+
+                setLoading(true);
+                setTimeout(() => {
+                    setLoading(false);
+
+                    // Allow it to pass in mock mode or if it matches
+                    if (EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY_HERE" || code === expectedCode) {
+                        finishAuth();
+                    } else {
+                        alert("Invalid verification code! Please try again.");
+                        setCode('');
+                    }
+                }, 800);
+            };
+
+            return (
+                <div className="min-h-screen flex">
+                    {/* Left Decorative Side */}
+                    <div className="hidden lg:flex w-1/2 relative bg-emerald-900 overflow-hidden">
+                        <img
+                            src="https://images.unsplash.com/photo-1457089328109-e5d9bd499191?auto=format&fit=crop&q=80&w=1200"
+                            className="absolute inset-0 w-full h-full object-cover opacity-60 hover:scale-105 transition-transform duration-[10s]"
+                            alt="Roses"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-emerald-900 via-transparent to-transparent opacity-80"></div>
+
+                        <div className="relative z-10 flex flex-col justify-end p-16 h-full text-white animate-in">
+                            <a href="index.html" className="inline-flex items-center gap-3 mb-10 w-fit hover:opacity-80 transition-opacity">
+                                <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center font-bold">A</div>
+                                <span className="text-2xl font-bold serif">Alchemy of Petals</span>
+                            </a>
+                            <h1 className="text-5xl font-bold serif leading-tight mb-6">
+                                The sanctuary for <br /> uncommon beauty.
+                            </h1>
+                            <p className="text-emerald-100 max-w-md text-lg">
+                                Join our greenhouse to discover premium curated plants, direct from ethical growers around the globe.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Right Form Side */}
+                    <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white relative">
+                        <a href="index.html" className="lg:hidden absolute top-8 left-8 flex items-center gap-2 group">
+                            <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold group-hover:scale-110 transition-transform">A</div>
+                        </a>
+
+                        {step === 'verify' ? (
+                            <div className="w-full max-w-md animate-in">
+                                <h2 className="text-4xl font-bold serif text-slate-900 mb-2">
+                                    Verify your Email
+                                </h2>
+                                <p className="text-slate-500 mb-10">
+                                    We've sent a magical 4-digit code to <span className="font-bold text-slate-800">{formData.email}</span>. Please enter it below to confirm your account.
+                                </p>
+
+                                <form onSubmit={handleVerify} className="space-y-6">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Access Code</label>
+                                        <input
+                                            required
+                                            type="text"
+                                            maxLength={4}
+                                            value={code}
+                                            onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white text-center text-3xl font-mono tracking-[1em] transition-all hover:bg-slate-100"
+                                            placeholder="••••"
+                                        />
+                                    </div>
+                                    <button
+                                        disabled={loading || code.length < 4}
+                                        type="submit"
+                                        className="w-full bg-emerald-600 text-white font-bold text-lg py-4 rounded-2xl mt-4 shadow-xl shadow-emerald-100 hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center"
+                                    >
+                                        {loading ? (
+                                            <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        ) : (
+                                            'Verify to Continue'
+                                        )}
+                                    </button>
+                                </form>
+
+                                <div className="mt-10 pt-8 border-t border-slate-100 text-center">
+                                    <p className="text-slate-500 text-sm">
+                                        Didn't receive a code?
+                                        {' '}
+                                        <button onClick={() => { setCode(''); alert('A new code was sent to the owls.'); }} className="font-bold text-emerald-600 hover:text-emerald-700 transition-colors underline decoration-2 underline-offset-4">
+                                            Resend
+                                        </button>
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="w-full max-w-md animate-in">
+                                <h2 className="text-4xl font-bold serif text-slate-900 mb-2">
+                                    {isRegister ? 'Join the Garden' : 'Welcome Back'}
+                                </h2>
+                                <p className="text-slate-500 mb-10">
+                                    {isRegister
+                                        ? 'Create an account to track your orders and save favorites.'
+                                        : 'Sign in to your account to view your curated collection.'}
+                                </p>
+
+                                <form onSubmit={handleSubmit} className="space-y-5">
+                                    {isRegister && (
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Full Name</label>
+                                            <input
+                                                required
+                                                type="text"
+                                                name="name"
+                                                value={formData.name}
+                                                onChange={handleChange}
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all hover:bg-slate-100"
+                                                placeholder="Jane Doe"
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Email Address</label>
+                                        <input
+                                            required
+                                            type="email"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all hover:bg-slate-100"
+                                            placeholder="nursery@example.com"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Password</label>
+                                        <input
+                                            required
+                                            type="password"
+                                            name="password"
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all hover:bg-slate-100"
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+
+                                    {!isRegister && (
+                                        <div className="text-right">
+                                            <button type="button" className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors">Forgot password?</button>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        disabled={loading}
+                                        type="submit"
+                                        className="w-full bg-emerald-600 text-white font-bold text-lg py-4 rounded-2xl mt-4 shadow-xl shadow-emerald-100 hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center"
+                                    >
+                                        {loading ? (
+                                            <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        ) : (
+                                            isRegister ? 'Create Account' : 'Sign In'
+                                        )}
+                                    </button>
+                                </form>
+
+                                <div className="mt-10 pt-8 border-t border-slate-100 text-center">
+                                    <p className="text-slate-500 text-sm">
+                                        {isRegister ? 'Already have an account?' : "Don't have an account?"}
+                                        {' '}
+                                        <button
+                                            onClick={() => {
+                                                setIsRegister(!isRegister);
+                                                setFormData({ name: '', email: '', password: '' });
+                                            }}
+                                            className="font-bold text-emerald-600 hover:text-emerald-700 transition-colors underline decoration-2 underline-offset-4"
+                                        >
+                                            {isRegister ? 'Sign in instead' : 'Register now'}
+                                        </button>
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<AuthApp />);
+    </script>
+</body>
+
+</html>
